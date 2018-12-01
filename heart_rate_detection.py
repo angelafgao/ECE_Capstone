@@ -4,15 +4,14 @@ Created on Wed Oct 17 10:20:32 2018
 
 @author: Angela
 """
-
 import numpy as np
-from scipy import signal
+import scipy.signal as signal
 import math, csv
 import time
-import matplotlib.pyplot as plt
+import os
 
 SAMPLING_RATE = 100
-PATH = r"C:\Users\Angela\Documents\CMU\F18\18-500\\"
+PATH = os.getcwd()
 FILENAME = "hc1.csv"
 
 def plot(xvals, yvals, axis = None, xlabel = None, ylabel = None):
@@ -34,7 +33,7 @@ def nextpow2(i):
 # center the data around 0
 def zero_mean(data):
     n = len(data)
-    mean = sum(data)/n
+    mean = np.sum(data)/n
     res = [0]*n
     for i in range(n):
         res[i] = data[i] - mean
@@ -42,22 +41,29 @@ def zero_mean(data):
 
 def check_data_good(data):
     for i in range(len(data)):
-        if (data[i] < 50000 or data[i] > 109000):
+        if (data[i] < 50000 or data[i] > 120000):
             print(data[i])
             return False
     return True
 
 # IR, BPM, AVG
 def get_data(path, filename):
+    count = 0
+    ir_data = []
+    bpm_data = []
+    avg_bpm_data = []
     with open(path + "/" + filename) as f:
         reader = csv.reader(f)
-        rawData = []
         for row in reader:
-            rawData.append(row)
-    raw_data = np.array(rawData)
-    ir_data = raw_data[:][0:]
-    bpm_data = raw_data[:][1:]
-    avg_bpm_data = raw_data[:][2:]
+            if (count != 0):
+                ir, bpm, avg = row
+                ir = float(ir)
+                bpm = float(bpm)
+                avg = float(avg)
+                ir_data.append(ir)
+                bpm_data.append(bpm)
+                avg_bpm_data.append(avg)
+            count += 1
     return ir_data, bpm_data, avg_bpm_data
 
 def main():
@@ -80,13 +86,12 @@ def main():
     pks = signal.find_peaks_cwt(hr_filt, np.arange(3, 10))
     num_pks = len(pks)
     beats_from_peaks = num_pks/2
-    time_btw_peaks = sum(pks[1:num_pks] - pks[0:-1])/(num_pks - 1)
+    time_btw_peaks = sum(np.array(pks[1:num_pks]) - np.array(pks[0:-1]))/(num_pks - 1)
     bpm_from_peaks = SAMPLING_RATE*60/time_btw_peaks/2
-    print("HR Found is = " + str(bpm_from_peaks) + " " + str(beats_from_peaks*3) + " BPM")
+    print("HR Found is = " + str(bpm_from_peaks) + " BPM")
     end = time.time()
     print("total time = " + str(end - start))
-    return bpm_from_peaks
+    return "Heart Rate:" + str(bpm_from_peaks)
 
 
-main()
 
