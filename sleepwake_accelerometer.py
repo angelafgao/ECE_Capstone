@@ -14,83 +14,14 @@ PATH = r"C:\Users\Angela\Documents\CMU\F18\18-500\data_sleep_wake\\"
 FILENAME = "sleep_4.tsv"
 THRESHOLD = 200 # THRESHOLD definitely can be greater than 7
 
-def check_sleep(signal, name):
-    sampling_per_sec = 10
-    # makes the box filter
-    box_width = sampling_per_sec*10
-    signal_width = len(signal)
-    box_filt = [0]*signal_width
-    min_ones = math.floor(signal_width/2-box_width/2) - 1
-    max_ones = math.floor(signal_width/2+box_width/2)
-    # print(min_ones, max_ones, signal_width)
-    for i in range(min_ones, max_ones):
-        box_filt[i] = 1
-    
-    # find the fft of the box and signal
-    fft_box_filt = np.fft.fft(box_filt)
-    fft_signal = np.fft.fft(signal)
-    
-    # multiply the signals together
-    filt_signal = np.fft.ifft(np.multiply(fft_box_filt, fft_signal))
-#    figure
-#    subplot(2, 1, 1)
-#    plot(1:signal_width, signal);
-#    axis([0 10000 -0.5 1.5])
-#    title(name)
-#    subplot(2, 1, 2);
-#    plot( 1:signal_width, filt_signal);
-    thresh = 3
-    count = 0
-    for i in range(0,len(filt_signal)):
-        if filt_signal[i] > thresh:
-            count += 1
-    if count < signal_width*0.07:
-        is_asleep = 1
-    else:
-        is_asleep = 0
-    return is_asleep
-
-
-def test_sleep():
-    t = [0, 0, 0]
-    samplingrate = 0.1
-    seconds = 10000 * samplingrate
-    for i in range(1, 5):
-        signal = np.zeros((10000, 1))  # asleep signal
-        idx = np.random.rand(10000, 40)
-        for ind in range(len(idx)):
-            signal[ind] = 1
-        signal = np.random.normal(0, 0.3, len(signal))
-        t1 = check_sleep(signal, "asleep signal")
-
-        signal = np.ones((10000, 1))  # awake signal
-        idx = np.random.rand(10000, 50)
-        for ind in range(len(idx)):
-            signal[ind] = 2
-        idx = np.random.rand(10000, 50)
-        for ind in range(len(idx)):
-            signal[ind] = 0
-        signal = np.random.normal(0, 0.3, len(signal))
-        t2 = check_sleep(signal / 2, "awake signal")
-
-        signal = np.sin(np.arange(0, 100 - 0.01, 0.01)) / 3  # awake signal
-        signal = signal + np.sin(np.arange(0, 10 - 0.001, 0.001)) / 10
-        signal = signal + np.sin(np.arange(0, 10000 - 1, 1)) / 9 + 0.5
-        signal = np.random.normal(0, 0.4, len(signal))
-        t3 = check_sleep(np.transpose(signal), "awake signal")
-        t[0] += t1
-        t[1] += t2
-        t[2] += t3
-    return t
-
 def check_sleep_3D(accData, sampling_per_sec):
     # makes the box filter
     box_width = sampling_per_sec * 10
     n = accData.size
     signal_width = int(n/3)
     box_filt = [0] * signal_width
-    min_ones = math.floor(signal_width / 2 - box_width / 2) - 1
-    max_ones = math.floor(signal_width / 2 + box_width / 2)
+    min_ones = int(math.floor(signal_width / 2 - box_width / 2) - 1)
+    max_ones = int(math.floor(signal_width / 2 + box_width / 2))
     # print(min_ones, max_ones, len(box_filt), signal_width)
     for i in range(min_ones, max_ones):
         box_filt[i] = 1
@@ -159,7 +90,6 @@ def plot(xvals, yvals, axis = None, xlabel = None, ylabel = None):
     if ylabel != None:
         plt.ylabel(ylabel)
     plt.show()
-
 
 def test():
     start = time.time()
