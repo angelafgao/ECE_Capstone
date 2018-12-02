@@ -48,34 +48,28 @@ def check_data_good(data):
     return True
 
 # IR, BPM, AVG
-def get_data(path, filename):
+def clean_data(data):
     count = 0
     ir_data = []
     bpm_data = []
     avg_bpm_data = []
-    with open(path + "/" + filename) as f:
-        reader = csv.reader(f)
-        for row in reader:
-            if (count != 0):
-                ir, bpm, avg = row
-                ir = float(ir)
-                bpm = float(bpm)
-                avg = float(avg)
-                ir_data.append(ir)
-                bpm_data.append(bpm)
-                avg_bpm_data.append(avg)
-            count += 1
+    for row in data:
+        if (count != 0):
+            ir, bpm, avg = data[count]
+            ir = float(ir)
+            bpm = float(bpm)
+            avg = float(avg)
+            ir_data.append(ir)
+            bpm_data.append(bpm)
+            avg_bpm_data.append(avg)
+        count += 1
     return ir_data, bpm_data, avg_bpm_data
 
 def main(data):
     start = time.time()
     T = 1.0/SAMPLING_RATE # sampling interval
     Fs = 1.0 / T
-    ir_data = data[0][1:-1]
-    ir_data = [float(x) for x in ir_data]
-    print(ir_data)
-    bpm_data = data[1:-1][1]
-    avg_bpm_data = data[1:-1][2]
+    ir_data, bpm_data, avg_bpm_data = clean_data(data)
     hr_data = zero_mean(ir_data)
 
     cutoff_bpm = [50.0, 200.0]
@@ -102,3 +96,4 @@ def main(data):
         print("total time = " + str(end - start))
         return "Heart Rate:" + str(bpm_from_peaks)
 
+print(clean_data([["IR", "hello", "sup"], ["1", "2", "3"], ["3", "2", "1"]]))
