@@ -50,19 +50,18 @@ def check_sleep_3D(accData, sampling_per_sec):
     return is_asleep
 
 # acc_x, acc_y, acc_z
-def get_data(path, filename):
+def get_data(data):
     count = 0
     data = []
-    with open(path + "/" + filename) as f:
-        reader = csv.reader(f)
-        for row in reader:
-            if (count != 0):
-                ax, ay, az = row
-                ax = float(ax)
-                ay = float(ay)
-                az = float(az)
-                data.append([ax, ay, az])
-            count += 1
+    reader = csv.reader(f)
+    for row in reader:
+        if (count != 0):
+            ax, ay, az = row
+            ax = float(ax)
+            ay = float(ay)
+            az = float(az)
+            data.append([ax, ay, az])
+        count += 1
     return data
 
 def zero_mean(data):
