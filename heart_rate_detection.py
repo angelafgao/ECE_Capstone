@@ -11,6 +11,7 @@ import time
 import os
 
 SAMPLING_RATE = 100
+TIME_SEC = 20
 PATH = os.getcwd()
 FILENAME = "hc1.csv"
 
@@ -66,11 +67,13 @@ def get_data(path, filename):
             count += 1
     return ir_data, bpm_data, avg_bpm_data
 
-def main():
+def main(data):
     start = time.time()
     T = 1.0/SAMPLING_RATE # sampling interval
     Fs = 1.0 / T
-    ir_data, bpm_data, avg_bpm_data = get_data(PATH, FILENAME)
+    ir_data = data[:][0]
+    bpm_data = data[:][1]
+    avg_bpm_data = data[:][2]
     hr_data = zero_mean(ir_data)
 
     cutoff_bpm = [50.0, 200.0]
@@ -79,19 +82,22 @@ def main():
     [b, a] = signal.butter(2, cutoff, 'bandpass') # 2nd order butterworth filter
 
     is_valid = check_data_good(ir_data)
-    print("data is " + str(is_valid))
-    # filter out the noise from signal
-    hr_filt = signal.lfilter(b, a, hr_data)
+    if (is_valid == False):
+        return "Heart Rate: Please Place Sensor on Feet"
+    else:
+        # filter out the noise from signal
+        hr_filt = signal.lfilter(b, a, hr_data)
 
-    pks = signal.find_peaks_cwt(hr_filt, np.arange(3, 10))
-    num_pks = len(pks)
-    beats_from_peaks = num_pks/2
-    time_btw_peaks = sum(np.array(pks[1:num_pks]) - np.array(pks[0:-1]))/(num_pks - 1)
-    bpm_from_peaks = SAMPLING_RATE*60/time_btw_peaks/2
-    print("HR Found is = " + str(bpm_from_peaks) + " BPM")
-    end = time.time()
-    print("total time = " + str(end - start))
-    return "Heart Rate:" + str(bpm_from_peaks)
-
+        pks = signal.find_peaks_cwt(hr_filt, np.arange(3, 10))
+        num_pks = len(pks)
+        beats_from_peaks = num_pks/2
+        bpm_from_peaks = beats_from_peaks*60/TIME_SEC
+        print("HR Found from Beats is = " + str(bpm_from_peaks) + " BPM")
+        time_btw_peaks = sum(np.array(pks[1:num_pks]) - np.array(pks[0:-1]))/(num_pks - 1)
+        bpm_from_peaks = SAMPLING_RATE*60/time_btw_peaks/2
+        print("HR Found from Time is = " + str(bpm_from_peaks) + " BPM")
+        end = time.time()
+        print("total time = " + str(end - start))
+        return "Heart Rate:" + str(bpm_from_peaks)
 
 
