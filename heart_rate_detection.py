@@ -71,9 +71,11 @@ def main(data):
     start = time.time()
     T = 1.0/SAMPLING_RATE # sampling interval
     Fs = 1.0 / T
-    ir_data = data[:][0]
-    bpm_data = data[:][1]
-    avg_bpm_data = data[:][2]
+    ir_data = data[0][1:-1]
+    ir_data = [float(x) for x in ir_data]
+    print(ir_data)
+    bpm_data = data[1:-1][1]
+    avg_bpm_data = data[1:-1][2]
     hr_data = zero_mean(ir_data)
 
     cutoff_bpm = [50.0, 200.0]
@@ -99,5 +101,4 @@ def main(data):
         end = time.time()
         print("total time = " + str(end - start))
         return "Heart Rate:" + str(bpm_from_peaks)
-
 
