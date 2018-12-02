@@ -94,6 +94,4 @@ def main(data):
         print("HR Found from Time is = " + str(bpm_from_peaks) + " BPM")
         end = time.time()
         print("total time = " + str(end - start))
-        return "Heart Rate:" + str(bpm_from_peaks)
-
-print(clean_data([["IR", "hello", "sup"], ["1", "2", "3"], ["3", "2", "1"]]))
+        return bpm_from_peaks

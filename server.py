@@ -33,28 +33,53 @@ class Server:
         self.client.close()
         print ("Server stopped successfully")
 
-def package_data(eyes, motion, hr):
-    return str(hr) + "\n" + str(eyes) + "\n" + str(motion) + "\n"
+def package_data(awoken, eyes, motion, hr):
+    s = ""
+    s += "Awoken: " + str(awoken) + "\n"
+    s += "Heart Rate: " + str(hr) + "\n"
+    s += "Eyes Open: " + str(eyes) + "\n"
+    s += "Motion: " + str(motion) + "\n"
+    return s
+
+def update_awake(prev_awake, next_awake, data):
+    prev_awake = next_awake
+    eyes, motion, hr = data
+    if (eyes == "Open" and motion == True and hr > 140):
+        next_awake = True
+    awoken = False
+    if (prev_awake == False and next_awake == True):
+        awoken = True
+    return prev_awake, next_awake, awoken
 
 
 if __name__ == '__main__':
     server = Server()
+    prev_awake = True
+    next_awake = True
     while (1):
         ### expects data in this format
-        ### "hr\neyes\n\motion\n"
+        ### "alert\nhr\neyes\nmotion\n"
         try:
-            BlueSerial.main()
-            eyes = faceDetectionUsingImage.main()
-            motion = sleepwake_accelerometer.test()
-            hr = heart_rate_detection.main()
-            data = package_data(eyes, motion, hr)
+            print("hi")
+##            heartrateData,accData = BlueSerial.main()
+            print("done")
+##            eyes = faceDetectionUsingImage.main()
+##            motion = sleepwake_accelerometer.main(accData)
+##            hr = heart_rate_detection.main(heartrateData)
+            eyes = "Open"
+            hr = 170
+            motion = True
+            prev_awake, next_awake, awoken = update_awake(prev_awake, next_awake, [eyes, motion, hr])
+            print(prev_awake, next_awake, awoken)
+            data = package_data(awoken, hr, eyes, motion)
             server.connect()
             server.send(bytes(data))
             server.disconnect()
-            time.sleep(10)
         except KeyboardInterrupt:
             server.socket.close()
-        except:
+        except Exception as e:
             server.socket.close()
+            raise e
+            break
     
      
