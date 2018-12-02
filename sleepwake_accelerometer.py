@@ -9,10 +9,15 @@ import scipy
 import math, csv
 import time
 import matplotlib.pyplot as plt
+import os
 
-PATH = r"C:\Users\Angela\Documents\CMU\F18\18-500\data_sleep_wake\\"
-FILENAME = "sleep_4.tsv"
+# PATH = r"C:\Users\Angela\Documents\CMU\F18\18-500\data_sleep_wake\\"
+# FILENAME = "sleep_4.tsv"
+PATH = "/home/pi/Desktop"
+FILENAME = "/ac1.csv"
 THRESHOLD = 200 # THRESHOLD definitely can be greater than 7
+SAMPLING_RATE = 200
+TIME_SEC = 60
 
 def check_sleep_3D(accData, sampling_per_sec):
     # makes the box filter
@@ -44,33 +49,21 @@ def check_sleep_3D(accData, sampling_per_sec):
             is_asleep[i] = 1
     return is_asleep
 
-def clean_data(path, filename):
-    input = path + filename
-    with open(input) as f:
-        reader = csv.reader(f, delimiter = "\t")
-        rawData = []
-        count = 0
+# acc_x, acc_y, acc_z
+def get_data(path, filename):
+    count = 0
+    data = []
+    with open(path + "/" + filename) as f:
+        reader = csv.reader(f)
         for row in reader:
+            if (count != 0):
+                ax, ay, az = row
+                ax = float(ax)
+                ay = float(ay)
+                az = float(az)
+                data.append([ax, ay, az])
             count += 1
-            if (row[0] == str(count)):
-                rawData.append(row)
-    min_time = int(rawData[0][1])
-    max_time = int(rawData[count-1][1])
-    time_sec = (max_time - min_time)/1000
-    accData = np.empty([count, 3])
-    timeData = np.empty(count)
-    for i in range(len(rawData)):
-        row = rawData[i]
-        [counter, timestamp, acc_x, acc_y, acc_z, filename] = row
-        timestamp = int(timestamp)
-        accData[i] = [float(acc_x), float(acc_y), float(acc_z)]
-        timeData[i] = timestamp
-    sampling_rate_ms = np.sum(np.subtract(timeData[1:count-1], timeData[0:count-2]))/count
-    print("sampling rate ms = " + str(sampling_rate_ms))
-    sampling_rate_sec = 1000/sampling_rate_ms
-    # sampling_per_sec = 40
-    accData_wo_nan = np.nan_to_num(accData)
-    return accData_wo_nan, sampling_rate_sec, time_sec
+    return data
 
 def zero_mean(data):
     n = len(data)
@@ -91,37 +84,18 @@ def plot(xvals, yvals, axis = None, xlabel = None, ylabel = None):
         plt.ylabel(ylabel)
     plt.show()
 
-def test():
+def main(accData):
     start = time.time()
-    accData, sampling_per_sec, time_sec = clean_data(PATH, FILENAME)
-    # sampling_per_sec = 20
 
-    # length of data should be 1 minute
-    numel = int(round(sampling_per_sec))*60
-    print("Sampling rate = " + str(numel/60))
     print("Data length = " + str(len(accData)))
-    # find number of minutes in data
-    n = int(math.floor(time_sec/60))
-    print(n)
-    if n ==  0:
-        print("ERROR: not enough data")
-    sleeping = [False]*(n-1)
+
     # classify each minute of data
-    for i in range(n-1):
-        data_segment = accData[i*numel:min(len(accData), (i+1)*numel-1)]
-        data = data_segment
-        # data = zero_mean(data_segment)
 
-        print("Iteration = " + str(i) + " len of data = " + str(len(data)))
-        t = check_sleep_3D(data, sampling_per_sec)
-        if (sum(t) > 1):
-            sleeping[i] = True
-
-    # for i in range(3):
-    #     plot(np.arange(0, len(accDat)), data[:, i])
+    t = check_sleep_3D(accData, SAMPLING_RATE)
+    if (sum(t) > 1):
+        sleeping = True
     end = time.time()
     print(end - start)
-    print(sleeping, sum(sleeping))
     print("The baby is sleeping is " + str(True if (sum(sleeping) > math.floor((n-1)/2)) else False))
     return
 

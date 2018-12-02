@@ -12,7 +12,7 @@ import os
 
 SAMPLING_RATE = 100
 TIME_SEC = 20
-PATH = os.getcwd()
+PATH = "/home/pi/Desktop"
 FILENAME = "hc1.csv"
 
 def plot(xvals, yvals, axis = None, xlabel = None, ylabel = None):
